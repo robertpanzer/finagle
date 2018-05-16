@@ -2,9 +2,9 @@ resolvers += Classpaths.sbtPluginReleases
 
 val branch = Process("git" :: "rev-parse" :: "--abbrev-ref" :: "HEAD" :: Nil).!!.trim
 val scroogeSbtPluginVersionPrefix = "4.20.0"
-val scroogeSbtPluginVersion =
-  if (branch == "master") scroogeSbtPluginVersionPrefix
-  else scroogeSbtPluginVersionPrefix + "-SNAPSHOT"
+val scroogeSbtPluginVersion = scroogeSbtPluginVersionPrefix
+//  if (branch == "master") scroogeSbtPluginVersionPrefix
+//  else scroogeSbtPluginVersionPrefix + "-SNAPSHOT"
 addSbtPlugin("com.twitter" % "scrooge-sbt-plugin" % scroogeSbtPluginVersion)
 
 addSbtPlugin("com.typesafe.sbt" % "sbt-site" % "1.3.0")

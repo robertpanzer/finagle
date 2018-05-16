@@ -1,5 +1,7 @@
 package com.twitter.finagle.netty4.param
 
+import java.util.concurrent.{Executor, Executors}
+
 import com.twitter.concurrent.NamedPoolThreadFactory
 import com.twitter.finagle.Stack
 import com.twitter.finagle.netty4.{nativeEpoll, numWorkers}
@@ -7,7 +9,6 @@ import com.twitter.finagle.util.BlockingTimeTrackingThreadFactory
 import io.netty.channel.EventLoopGroup
 import io.netty.channel.epoll.EpollEventLoopGroup
 import io.netty.channel.nio.NioEventLoopGroup
-import java.util.concurrent.{Executor, Executors}
 
 /**
  * A class eligible for configuring the [[io.netty.channel.EventLoopGroup]] used
@@ -20,8 +21,8 @@ import java.util.concurrent.{Executor, Executors}
  */
 case class WorkerPool(eventLoopGroup: EventLoopGroup) {
   def this(executor: Executor, numWorkers: Int) = this(
-    if (nativeEpoll.enabled) new EpollEventLoopGroup(numWorkers, executor)
-    else new NioEventLoopGroup(numWorkers, executor))
+    if (nativeEpoll.enabled) WorkerPool.mkEpollEventLoopGroup(numWorkers, executor)
+    else WorkerPool.mkNioEventLoopGroup(numWorkers, executor))
 
   def mk(): (WorkerPool, Stack.Param[WorkerPool]) =
     (this, WorkerPool.workerPoolParam)
@@ -37,4 +38,11 @@ object WorkerPool {
     new WorkerPool(Executors.newCachedThreadPool(new BlockingTimeTrackingThreadFactory(
       new NamedPoolThreadFactory("finagle/netty4", makeDaemons = true)
     )), numWorkers()))
+
+  private[netty4] def mkEpollEventLoopGroup(numWorkers: Int, executor: Executor): EventLoopGroup =
+    new EpollEventLoopGroup(numWorkers, executor)
+
+  private[netty4] def mkNioEventLoopGroup(numWorkers: Int, executor: Executor): EventLoopGroup =
+    new NioEventLoopGroup(numWorkers, executor)
+
 }
